@@ -34,7 +34,7 @@ namespace PHPLife {
     $window->setHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     // open it
-    $window->open('2D Ball');
+    $window->open('PHP-Life');
 
     // enable vsync
     $window->setSwapInterval(1);
