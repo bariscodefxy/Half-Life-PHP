@@ -1,0 +1,21 @@
+{
+  "name": "bariscodefx/php-life",
+  "description": "Half-Life written in PHP.",
+  "type": "project",
+  "minimum-stability": "dev",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "PHPLife\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "bariscodefx",
+      "email": "bariscodefx@protonmail.com"
+    }
+  ],
+  "require": {
+    "mario-deluna/php-game-framework": "dev-master"
+  }
+}
