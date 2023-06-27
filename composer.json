@@ -16,6 +16,7 @@
     }
   ],
   "require": {
-    "mario-deluna/php-game-framework": "dev-master"
+    "phpgl/ide-stubs": "dev-main",
+    "phpgl/visu": "@dev"
   }
 }

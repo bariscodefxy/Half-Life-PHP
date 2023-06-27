@@ -1,0 +1,45 @@
+/**
+ * Window
+ */
+@window.main.hints: VISU\OS\WindowHints
+@window.main: VISU\OS\Window(
+    :game.name,
+    :window.default_widht,
+    :window.default_height,
+    @window.main.hints
+)
+
+/**
+ * VISU GL State
+ */
+@GL: VISU\Graphics\GLState
+
+/**
+ * Main Game & Loop
+ */
+// the main game
+@game: PHPLife\Game(@container)
+
+// the game loop
+// we are tick the game 60 times a second
+@game_loop.main: VISU\Runtime\GameLoop(@game, 120)
+
+/**
+ * Shader storage
+ */
+@shaders: VISU\Graphics\ShaderCollection(@GL, :visu.path.resources.shader)
+    - enableVISUIncludes()
+    - addVISUShaders()
+    - scanShaderDirectory(:visu.path.resources.shader)
+
+
+/**
+ * Model collection and loading
+ */
+@models: VISU\System\VISULowPoly\LPModelCollection
+@models.loader: VISU\System\VISULowPoly\LPObjLoader(@GL)
+
+/**
+ * Profiler
+ */
+@profiler: VISU\Instrument\CompatProfiler

@@ -6,56 +6,28 @@ namespace PHPLife {
     }
     /**
      *---------------------------------------------------------------
-     * Autoloader / Compser
+     * Autoloader / Composer
      *---------------------------------------------------------------
      *
-     * We need to access our dependencies & autloader..
+     * We need to access our dependencies & autoloader..
      */
-    require __DIR__ . DS . '..' . DS . 'vendor' . DS . 'autoload.php';
+    $container = require __DIR__ . DS . '..' . DS . 'bootstrap.php';
 
-    use PGF\{
-        Window,
-        Common\FrameLimiter,
-
-        Shader\Shader,
-        Shader\Program,
-
-        Drawing\Drawer2D,
-
-        Texture\Texture
-    };
-
-    $window = new Window;
-
-    // configure the window
-    $window->setHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    $window->setHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    $window->setHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    $window->setHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-    // open it
-    $window->open('PHP-Life');
-
-    // enable vsync
-    $window->setSwapInterval(1);
-
-    // create frame limiter
-    $fl = new FrameLimiter();
+    set_time_limit(0);
 
     /**
-     * Create drawer
+     *---------------------------------------------------------------
+     * Initialize Game
+     *---------------------------------------------------------------
+     *
+     * Starts GLFW, load the game entry point and start the game loop.
      */
-    $drawer = new Drawer2D($window);
+    glfwInit();
 
-    /**
-     * Main loop
-     */
-    while (!$window->shouldClose())
-    {
-        // swap
-        $window->swapBuffers();
+    // load & start the game
+    $game = $container->get('game');
+    $game->start();
 
-        $fl->wait();
-    }
-
+    // clean up glfw
+    glfwTerminate();
 }

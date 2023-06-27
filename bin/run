@@ -1,1 +1,1 @@
-/usr/bin/env php src/Launcher.php
+/usr/bin/env php ./src/Launcher.php
