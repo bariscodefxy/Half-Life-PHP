@@ -104,8 +104,7 @@ abstract class LevelScene extends BaseScene implements DevEntityPickerDelegate
         // load the space kit models
         // these are smaller then our unit space of 1 unit = 1 meter
         // so we scale them up by a factor of 4.0 to ~ match our environment scale
-        $objectLoader->loadAllInDirectory(VISU_PATH_RESOURCES . '/models/spacekit', $objectCollection, 4.0);
-        $objectLoader->loadAllInDirectory(VISU_PATH_RESOURCES . '/models/hl_mp_stalkyard', $objectCollection, 4.0);
+        $objectLoader->loadAllInDirectory(VISU_PATH_RESOURCES . '/models/weapons', $objectCollection, 4.0);
 
         // prepare the rendering systems 
         $this->terrainRenderer = new TerrainRenderer($container->resolveGL(), $container->resolveShaders());
