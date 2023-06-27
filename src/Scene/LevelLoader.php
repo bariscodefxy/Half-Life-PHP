@@ -22,18 +22,17 @@ class LevelLoader
      * @var int
      */
     private const SERIALIZATION_VERSION = 1;
-    
+
     public function __construct(
         private string $path
-    )
-    {
-        $this->scanDirForLevels();   
+    ) {
+        $this->scanDirForLevels();
     }
 
     /**
      * Scans the loaders directory for available level files.
      */
-    private function scanDirForLevels() : void
+    private function scanDirForLevels(): void
     {
         $this->availableLevels = [];
         $files = scandir($this->path);
@@ -47,7 +46,7 @@ class LevelLoader
     /**
      * Returns all available level names
      */
-    public function getAvailableLevels() : array
+    public function getAvailableLevels(): array
     {
         return $this->availableLevels;
     }
@@ -55,7 +54,7 @@ class LevelLoader
     /**
      * Returns true if the given level exists.
      */
-    public function exists(string $levelName) : bool
+    public function exists(string $levelName): bool
     {
         return file_exists($this->fullPath($levelName));
     }
@@ -63,7 +62,7 @@ class LevelLoader
     /**
      * Returns the full path for the given level name.
      */
-    public function fullPath(string $levelName) : string
+    public function fullPath(string $levelName): string
     {
         return $this->path . '/' . $levelName . '.lvl';
     }
@@ -72,7 +71,7 @@ class LevelLoader
      * Returns level loader options for the given level name.
      * Will throw an exception if the level has not be found yet.
      */
-    public function createOptions(string $levelName) : LevelLoaderOptions
+    public function createOptions(string $levelName): LevelLoaderOptions
     {
         $options = new LevelLoaderOptions($this->fullPath($levelName));
         return $options;
@@ -81,7 +80,7 @@ class LevelLoader
     /**
      * Deserializes the given level file into the given registry.
      */
-    public function deserialize(EntitiesInterface $entities, LevelLoaderOptions $options) : LevelData
+    public function deserialize(EntitiesInterface $entities, LevelLoaderOptions $options): LevelData
     {
         if (!file_exists($options->levelFilePath) || !is_readable($options->levelFilePath)) {
             throw new \Exception('Level file could not be found or is not readable: ' . $options->levelFilePath);
@@ -120,7 +119,7 @@ class LevelLoader
     /**
      * Serializes the given registry into the given level file.
      */
-    public function serialize(EntitiesInterface $entities, LevelData $level, LevelLoaderOptions $options) : void
+    public function serialize(EntitiesInterface $entities, LevelData $level, LevelLoaderOptions $options): void
     {
         if (!$entities instanceof EntityRegisty) {
             throw new \Exception('Only EntityRegistry instances are supported for serialization.');

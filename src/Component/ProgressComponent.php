@@ -6,7 +6,7 @@ namespace PHPLife\Component;
  * Progress component for demonstration purposes
  * @TODO Implement progress component in a meaningful way
  * 
- * @package TowerDefense\Component
+ * @package PHPLife\Component
  */
 class ProgressComponent
 {

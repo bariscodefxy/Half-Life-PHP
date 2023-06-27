@@ -48,7 +48,7 @@ class LevelEditorScene extends LevelScene
      */
     public function getName() : string
     {
-        return sprintf('TowerDefense (%s) [PLAY]', $this->level->name);
+        return sprintf('PHPLife (%s) [PLAY]', $this->level->name);
     }
 
     /**

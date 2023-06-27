@@ -6,7 +6,7 @@ namespace PHPLife\Component;
  * Health component for demonstration purposes
  * @TODO Implement health component in a meaningful way
  * 
- * @package TowerDefense\Component
+ * @package PHPLife\Component
  */
 class HealthComponent
 {

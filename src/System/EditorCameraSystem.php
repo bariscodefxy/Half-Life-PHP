@@ -2,53 +2,27 @@
 
 namespace PHPLife\System;
 
-use GameContainer;
 use GL\Math\GLM;
 use GL\Math\Quat;
 use PHPLife\Component\GameCameraComponent;
 use PHPLife\Component\HeightmapComponent;
-use PHPLife\Component\LevelSceneryComponent;
-use VISU\Component\VISULowPoly\DynamicRenderableModel;
 use VISU\ECS\EntitiesInterface;
 use VISU\Geo\Math;
 use VISU\Geo\Transform;
 use VISU\Graphics\Camera;
 use VISU\OS\Input;
 use VISU\OS\InputContextMap;
-use VISU\OS\Key;
 use VISU\OS\MouseButton;
 use VISU\Signal\Dispatcher;
 use VISU\Signals\Input\CursorPosSignal;
-use VISU\Signals\Input\KeySignal;
 use VISU\Signals\Input\ScrollSignal;
-use VISU\System\VISUCameraSystem;
 
-class CameraSystem extends VISUCameraSystem
+class EditorCameraSystem extends CameraSystem
 {
     /**
      * Default camera mode is game in the game... 
      */
     protected int $visuCameraMode = self::CAMERA_MODE_GAME;
-
-    /**
-     * GameContainer
-     */
-    protected GameContainer $container;
-
-    /**
-     * keyboardHandlerId
-     */
-    private int $keyboardHandlerId;
-
-    /**
-     * EntitiesInterface
-     */
-    private EntitiesInterface $entities;
-
-    /**
-     * keys
-     */
-    private $keys = [];
 
     /**
      * Constructor
@@ -57,50 +31,9 @@ class CameraSystem extends VISUCameraSystem
         Input $input,
         protected InputContextMap $inputContext,
         Dispatcher $dispatcher,
-        GameContainer $container
-    ) {
-        parent::__construct($input, $dispatcher);
-
-        $this->container = $container;
-        $this->drawWeapon = false;
-
-        $this->keyboardHandlerId = $this->container->resolveVisuDispatcher()->register('input.key', [$this, 'handleKeyboardEvent']);
-    }
-
-    /**
-     * Keyboard event handler
-     */
-    public function handleKeyboardEvent(KeySignal $signal): void
+    )
     {
-        if ($signal->action == INPUT::PRESS) {
-            if ($signal->key === Key::W) {
-                $this->keys[Key::W] = true;
-            }
-            if ($signal->key === Key::S) {
-                $this->keys[Key::S] = true;
-            }
-            if ($signal->key === Key::A) {
-                $this->keys[Key::A] = true;
-            }
-            if ($signal->key === Key::D) {
-                $this->keys[Key::D] = true;
-            }
-
-        }
-        if ($signal->action == INPUT::RELEASE) {
-            if ($signal->key === Key::W) {
-                $this->keys[Key::W] = false;
-            }
-            if ($signal->key === Key::S) {
-                $this->keys[Key::S] = false;
-            }
-            if ($signal->key === Key::A) {
-                $this->keys[Key::A] = false;
-            }
-            if ($signal->key === Key::D) {
-                $this->keys[Key::D] = false;
-            }
-        }
+        parent::__construct($input, $dispatcher);
     }
 
     /**
@@ -108,7 +41,7 @@ class CameraSystem extends VISUCameraSystem
      * 
      * @return void 
      */
-    public function register(EntitiesInterface $entities): void
+    public function register(EntitiesInterface $entities) : void
     {
         parent::register($entities);
 
@@ -120,7 +53,7 @@ class CameraSystem extends VISUCameraSystem
      * 
      * @return void 
      */
-    public function unregister(EntitiesInterface $entities): void
+    public function unregister(EntitiesInterface $entities) : void
     {
         parent::unregister($entities);
 
@@ -133,34 +66,14 @@ class CameraSystem extends VISUCameraSystem
      * @param CursorPosSignal $signal 
      * @return void 
      */
-    protected function handleCursorPosVISUGame(EntitiesInterface $entities, CursorPosSignal $signal): void
+    protected function handleCursorPosVISUGame(EntitiesInterface $entities, CursorPosSignal $signal) : void
     {
         $gameCamera = $entities->getSingleton(GameCameraComponent::class);
 
-        $width = 0;
-        $height = 0;
-        glfwGetWindowSize($this->container->resolveWindowMain()->getGLFWHandle(), $width, $height);
-        glfwSetCursorPos($this->container->resolveWindowMain()->getGLFWHandle(), $width / 2, $height / 2);
-
-        glfwSetInputMode($this->container->resolveWindowMain()->getGLFWHandle(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-
-        $x = 0;
-        $y = 0;
-        if ($signal->x > $width / 2 + 10) {
-            $x = 0.5 * 3;
-        } else if ($signal->x < $width / 2 - 10) {
-            $x = -0.5 * 3;
+        if ($this->input->isMouseButtonPressed(MouseButton::LEFT)) {
+            $gameCamera->rotationVelocity->x = $gameCamera->rotationVelocity->x + ($signal->offsetX * $gameCamera->rotationVelocityMouse);
+            $gameCamera->rotationVelocity->y = $gameCamera->rotationVelocity->y + ($signal->offsetY * $gameCamera->rotationVelocityMouse);
         }
-
-        if ($signal->y > $height / 2 + 10) {
-            $y = 0.2 * 3;
-        } else if ($signal->y < $height / 2 - 10) {
-            $y = -0.2 * 3;
-        }
-
-        // first person controller
-        $gameCamera->rotationVelocity->x = $gameCamera->rotationVelocity->x - ($x * $gameCamera->rotationVelocityMouse);
-        $gameCamera->rotationVelocity->y = $gameCamera->rotationVelocity->y - ($y * $gameCamera->rotationVelocityMouse);
     }
 
     /**
@@ -169,13 +82,13 @@ class CameraSystem extends VISUCameraSystem
      * @param ScrollSignal $signal
      * @return void 
      */
-    protected function handleScrollVISUGame(EntitiesInterface $entities, ScrollSignal $signal): void
+    protected function handleScrollVISUGame(EntitiesInterface $entities, ScrollSignal $signal) : void
     {
         $gameCamera = $entities->getSingleton(GameCameraComponent::class);
 
-        // $c = $gameCamera->focusRadius / $gameCamera->focusRadiusMax;
-        // $newRadius = $gameCamera->focusRadius + ($signal->y * $c * $gameCamera->focusRadiusZoomFactor);
-        // $gameCamera->setFocusRadius($newRadius);
+        $c = $gameCamera->focusRadius / $gameCamera->focusRadiusMax;
+        $newRadius = $gameCamera->focusRadius + ($signal->y * $c * $gameCamera->focusRadiusZoomFactor);
+        $gameCamera->setFocusRadius($newRadius);
     }
 
     /**
@@ -183,10 +96,8 @@ class CameraSystem extends VISUCameraSystem
      * 
      * @param EntitiesInterface $entities
      */
-    public function updateGameCamera(EntitiesInterface $entities, Camera $camera): void
+    public function updateGameCamera(EntitiesInterface $entities, Camera $camera) : void
     {
-        $this->entities = $entities;
-
         // skip until we have a heightmap
         if (!$entities->hasSingleton(HeightmapComponent::class)) {
             return;
@@ -196,26 +107,33 @@ class CameraSystem extends VISUCameraSystem
         $heightmap = $entities->getSingleton(HeightmapComponent::class);
 
         // calulate the focus point velocity update
-        $speed = 0.3;
+        $c = $gameCamera->focusRadius / $gameCamera->focusRadiusMax;
+        $speed = Math::lerp($gameCamera->focusPointSpeedClose, $gameCamera->focusPointSpeedFar, $c);
 
-        if (@$this->keys[Key::W]) {
+        if ($this->inputContext->actions->isButtonDown('camera_move_forward')) 
+        {
             $dir = Math::projectOnPlane($camera->transform->dirForward(), Transform::worldUp());
             $dir->normalize();
 
             $gameCamera->focusPointVelocity = $gameCamera->focusPointVelocity + ($dir * $speed);
-        } elseif (@$this->keys[Key::S]) {
+        }
+        elseif ($this->inputContext->actions->isButtonDown('camera_move_backward')) 
+        {
             $dir = Math::projectOnPlane($camera->transform->dirBackward(), Transform::worldUp());
             $dir->normalize();
 
             $gameCamera->focusPointVelocity = $gameCamera->focusPointVelocity + ($dir * $speed);
         }
 
-        if (@$this->keys[Key::A]) {
+        if ($this->inputContext->actions->isButtonDown('camera_move_left')) 
+        {
             $dir = Math::projectOnPlane($camera->transform->dirLeft(), Transform::worldUp());
             $dir->normalize();
 
             $gameCamera->focusPointVelocity = $gameCamera->focusPointVelocity + ($dir * $speed);
-        } elseif (@$this->keys[Key::D]) {
+        }
+        elseif ($this->inputContext->actions->isButtonDown('camera_move_right')) 
+        {
             $dir = Math::projectOnPlane($camera->transform->dirRight(), Transform::worldUp());
             $dir->normalize();
 
@@ -227,8 +145,8 @@ class CameraSystem extends VISUCameraSystem
         $gameCamera->focusPointVelocity = $gameCamera->focusPointVelocity * $gameCamera->focusPointVelocityDamp;
 
         // y is always the height of the terrain
-        $gameCamera->focusPoint->y = (float) $heightmap->heightmap->getHeightAt($gameCamera->focusPoint->x, $gameCamera->focusPoint->z);
-
+        $gameCamera->focusPoint->y = (float)$heightmap->heightmap->getHeightAt($gameCamera->focusPoint->x, $gameCamera->focusPoint->z);
+        
         // update the cameras rotation in euler angles
         $gameCamera->rotation = $gameCamera->rotation + $gameCamera->rotationVelocity;
 
@@ -247,8 +165,8 @@ class CameraSystem extends VISUCameraSystem
 
         // ensure the camera is always above the terrain
         $camera->transform->position->y = max(
-            $camera->transform->position->y,
-            $heightmap->heightmap->getHeightAt($camera->transform->position->x, $camera->transform->position->z) + 50.0 // min 1.0 above the terrain
+            $camera->transform->position->y, 
+            $heightmap->heightmap->getHeightAt($camera->transform->position->x, $camera->transform->position->z) + 1.0 // min 1.0 above the terrain
         );
     }
 }

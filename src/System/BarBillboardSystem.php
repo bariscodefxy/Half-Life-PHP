@@ -30,7 +30,7 @@ use VISU\System\VISULowPoly\LPModelCollection;
  * 
  * Renders bar billboards for entities having a HealthComponent or a ProgressComponent.
  * 
- * @package TowerDefense\Renderer
+ * @package PHPLife\Renderer
  */
 class BarBillboardSystem implements SystemInterface
 {

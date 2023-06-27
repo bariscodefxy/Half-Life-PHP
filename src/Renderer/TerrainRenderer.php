@@ -56,6 +56,11 @@ class TerrainRenderer implements GBufferGeometryPassInterface, GPUHeightmapGeome
     {
         $model = new ObjFileParser($path);
 
+        if (!is_file(substr($path, 0, -4) . ".mtl"))
+        {
+            throw new \Exception('Terrain has not a .mtl file');
+        }
+
         /** @var \GL\Buffer\FloatBuffer */
         $vertexData = $model->getVertices('pn');
 

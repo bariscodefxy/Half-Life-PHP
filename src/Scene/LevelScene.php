@@ -6,9 +6,11 @@ use GameContainer;
 use PHPLife\Component\HeightmapComponent;
 use PHPLife\Component\LevelSceneryComponent;
 use PHPLife\Debug\DebugTextOverlay;
+use PHPLife\Renderer\LevelSceneryRenderer;
 use PHPLife\Renderer\TerrainRenderer;
 use PHPLife\System\BarBillboardSystem;
 use PHPLife\System\CameraSystem;
+use PHPLife\System\EditorCameraSystem;
 use PHPLife\System\HeightmapSystem;
 use VISU\ECS\EntityRegisty;
 use VISU\ECS\Picker\DevEntityPicker;
@@ -34,6 +36,11 @@ abstract class LevelScene extends BaseScene implements DevEntityPickerDelegate
      * Terrain renderer
      */
     private TerrainRenderer $terrainRenderer;
+
+    /**
+     * A scenery renderer
+     */
+    private LevelSceneryRenderer $sceneryRenderer;
 
     /**
      * A level loader, serializes and deserializes levels
@@ -102,12 +109,15 @@ abstract class LevelScene extends BaseScene implements DevEntityPickerDelegate
 
         // prepare the rendering systems 
         $this->terrainRenderer = new TerrainRenderer($container->resolveGL(), $container->resolveShaders());
+        $this->sceneryRenderer = new LevelSceneryRenderer($container->resolveGL(), $container->resolveShaders());
+        $this->sceneryRenderer->loadLevelObj(VISU_PATH_RESOURCES . '/terrain/' . $this->levelName . '/'. $this->levelName . '.obj');
         $this->renderingSystem = new VISULowPolyRenderingSystem(
             $container->resolveGL(), 
             $container->resolveShaders(),
             $objectCollection
         );
-        $this->renderingSystem->addGeometryRenderer($this->terrainRenderer);
+        // $this->renderingSystem->addGeometryRenderer($this->terrainRenderer);
+        $this->renderingSystem->addGeometryRenderer($this->sceneryRenderer);
 
         // billboard system
         $this->barBillboardSystem = new BarBillboardSystem($container->resolveGL(), $objectCollection);
@@ -116,7 +126,8 @@ abstract class LevelScene extends BaseScene implements DevEntityPickerDelegate
         $this->cameraSystem = new CameraSystem(
             $this->container->resolveInput(),
             $this->container->resolveInputContext(),
-            $this->container->resolveVisuDispatcher()
+            $this->container->resolveVisuDispatcher(),
+            $this->container
         );
 
         // heightmap system (this is not the terrain)
