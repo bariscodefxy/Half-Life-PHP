@@ -354,10 +354,6 @@ class LevelEditorScene extends LevelScene
         D3D::cross($origin, D3D::$colorGreen, 5);
         D3D::cross($dest, D3D::$colorGreen, 5);
 
-        $this->roadRenderer->tmpOrigin = $origin;
-        $this->roadRenderer->tmpP0 = $p0;
-        $this->roadRenderer->tmpDest = $dest;
-
         // get the model collection 
         $modelCollection = $this->container->resolveModels();
 

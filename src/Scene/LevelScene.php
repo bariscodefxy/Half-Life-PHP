@@ -6,7 +6,6 @@ use GameContainer;
 use PHPLife\Component\HeightmapComponent;
 use PHPLife\Component\LevelSceneryComponent;
 use PHPLife\Debug\DebugTextOverlay;
-use PHPLife\Renderer\RoadRenderer;
 use PHPLife\Renderer\TerrainRenderer;
 use PHPLife\System\BarBillboardSystem;
 use PHPLife\System\CameraSystem;
@@ -35,11 +34,6 @@ abstract class LevelScene extends BaseScene implements DevEntityPickerDelegate
      * Terrain renderer
      */
     private TerrainRenderer $terrainRenderer;
-
-    /**
-     * Road renderer
-     */
-    protected RoadRenderer $roadRenderer;
 
     /**
      * A level loader, serializes and deserializes levels
@@ -108,14 +102,12 @@ abstract class LevelScene extends BaseScene implements DevEntityPickerDelegate
 
         // prepare the rendering systems 
         $this->terrainRenderer = new TerrainRenderer($container->resolveGL(), $container->resolveShaders());
-        $this->roadRenderer = new RoadRenderer($container->resolveGL(), $container->resolveShaders());
         $this->renderingSystem = new VISULowPolyRenderingSystem(
             $container->resolveGL(), 
             $container->resolveShaders(),
             $objectCollection
         );
         $this->renderingSystem->addGeometryRenderer($this->terrainRenderer);
-        $this->renderingSystem->addGeometryRenderer($this->roadRenderer);
 
         // billboard system
         $this->barBillboardSystem = new BarBillboardSystem($container->resolveGL(), $objectCollection);
@@ -375,9 +367,6 @@ abstract class LevelScene extends BaseScene implements DevEntityPickerDelegate
 
             $this->terrainRenderer->loadTerrainFromObj(VISU_PATH_RES_TERRAIN . $this->level->terrainFileName);
         }
-
-        // load basic road
-        $this->roadRenderer->loadRoad(VISU_PATH_RESOURCES . '/models/road/basic.obj');
         
         // register the systems
         $this->registerSystems();
