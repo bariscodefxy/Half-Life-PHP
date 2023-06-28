@@ -5,10 +5,9 @@ namespace PHPLife\System;
 use GameContainer;
 use GL\Math\GLM;
 use GL\Math\Quat;
+use GL\Math\Vec3;
 use PHPLife\Component\GameCameraComponent;
 use PHPLife\Component\HeightmapComponent;
-use PHPLife\Component\LevelSceneryComponent;
-use VISU\Component\VISULowPoly\DynamicRenderableModel;
 use VISU\ECS\EntitiesInterface;
 use VISU\Geo\Math;
 use VISU\Geo\Transform;
@@ -16,7 +15,6 @@ use VISU\Graphics\Camera;
 use VISU\OS\Input;
 use VISU\OS\InputContextMap;
 use VISU\OS\Key;
-use VISU\OS\MouseButton;
 use VISU\Signal\Dispatcher;
 use VISU\Signals\Input\CursorPosSignal;
 use VISU\Signals\Input\KeySignal;
@@ -26,7 +24,7 @@ use VISU\System\VISUCameraSystem;
 class CameraSystem extends VISUCameraSystem
 {
     /**
-     * Default camera mode is game in the game... 
+     * Default camera mode is game in the game...
      */
     protected int $visuCameraMode = self::CAMERA_MODE_GAME;
 
@@ -54,11 +52,12 @@ class CameraSystem extends VISUCameraSystem
      * Constructor
      */
     public function __construct(
-        Input $input,
+        Input                     $input,
         protected InputContextMap $inputContext,
-        Dispatcher $dispatcher,
-        GameContainer $container
-    ) {
+        Dispatcher                $dispatcher,
+        GameContainer             $container
+    )
+    {
         parent::__construct($input, $dispatcher);
 
         $this->container = $container;
@@ -86,6 +85,9 @@ class CameraSystem extends VISUCameraSystem
                 $this->keys[Key::D] = true;
             }
 
+            if ($signal->key === Key::SPACE) {
+                $this->keys[Key::SPACE] = true;
+            }
         }
         if ($signal->action == INPUT::RELEASE) {
             if ($signal->key === Key::W) {
@@ -100,13 +102,17 @@ class CameraSystem extends VISUCameraSystem
             if ($signal->key === Key::D) {
                 $this->keys[Key::D] = false;
             }
+
+            if ($signal->key === Key::SPACE) {
+                $this->keys[Key::SPACE] = false;
+            }
         }
     }
 
     /**
      * Registers the system, this is where you should register all required components.
-     * 
-     * @return void 
+     *
+     * @return void
      */
     public function register(EntitiesInterface $entities): void
     {
@@ -117,8 +123,8 @@ class CameraSystem extends VISUCameraSystem
 
     /**
      * Unregisters the system, this is where you can handle any cleanup.
-     * 
-     * @return void 
+     *
+     * @return void
      */
     public function unregister(EntitiesInterface $entities): void
     {
@@ -129,9 +135,9 @@ class CameraSystem extends VISUCameraSystem
 
     /**
      * Override this method to handle the cursor position in game mode
-     * 
-     * @param CursorPosSignal $signal 
-     * @return void 
+     *
+     * @param CursorPosSignal $signal
+     * @return void
      */
     protected function handleCursorPosVISUGame(EntitiesInterface $entities, CursorPosSignal $signal): void
     {
@@ -140,34 +146,34 @@ class CameraSystem extends VISUCameraSystem
         $width = 0;
         $height = 0;
         glfwGetWindowSize($this->container->resolveWindowMain()->getGLFWHandle(), $width, $height);
-        glfwSetCursorPos($this->container->resolveWindowMain()->getGLFWHandle(), $width / 2, $height / 2);
 
-        glfwSetInputMode($this->container->resolveWindowMain()->getGLFWHandle(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-
+        $sensitivity = 5;
         $x = 0;
         $y = 0;
-        if ($signal->x > $width / 2 + 10) {
-            $x = 0.5 * 3;
-        } else if ($signal->x < $width / 2 - 10) {
-            $x = -0.5 * 3;
+        if ($signal->x > $width / 2) {
+            $x = 0.35 * $sensitivity;
+        } else if ($signal->x < $width / 2) {
+            $x = -0.35 * $sensitivity;
         }
 
-        if ($signal->y > $height / 2 + 10) {
-            $y = 0.2 * 3;
-        } else if ($signal->y < $height / 2 - 10) {
-            $y = -0.2 * 3;
+        if ($signal->y > $height / 2) {
+            $y = 0.2 * $sensitivity;
+        } else if ($signal->y < $height / 2) {
+            $y = -0.2 * $sensitivity;
         }
 
         // first person controller
         $gameCamera->rotationVelocity->x = $gameCamera->rotationVelocity->x - ($x * $gameCamera->rotationVelocityMouse);
         $gameCamera->rotationVelocity->y = $gameCamera->rotationVelocity->y - ($y * $gameCamera->rotationVelocityMouse);
+        glfwSetCursorPos($this->container->resolveWindowMain()->getGLFWHandle(), $width / 2, $height / 2);
+        glfwSetInputMode($this->container->resolveWindowMain()->getGLFWHandle(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 
     /**
      * Override this method to handle the scroll wheel in game mode
-     * 
+     *
      * @param ScrollSignal $signal
-     * @return void 
+     * @return void
      */
     protected function handleScrollVISUGame(EntitiesInterface $entities, ScrollSignal $signal): void
     {
@@ -180,7 +186,7 @@ class CameraSystem extends VISUCameraSystem
 
     /**
      * Override this method to update the camera in game mode
-     * 
+     *
      * @param EntitiesInterface $entities
      */
     public function updateGameCamera(EntitiesInterface $entities, Camera $camera): void
@@ -222,12 +228,14 @@ class CameraSystem extends VISUCameraSystem
             $gameCamera->focusPointVelocity = $gameCamera->focusPointVelocity + ($dir * $speed);
         }
 
+        if(@$this->keys[Key::SPACE])
+        {
+            $gameCamera->focusPoint += new Vec3(0, 50, 0);
+        }
+
         // update the focus point itself
         $gameCamera->focusPoint = $gameCamera->focusPoint + $gameCamera->focusPointVelocity;
         $gameCamera->focusPointVelocity = $gameCamera->focusPointVelocity * $gameCamera->focusPointVelocityDamp;
-
-        // y is always the height of the terrain
-        $gameCamera->focusPoint->y = (float) $heightmap->heightmap->getHeightAt($gameCamera->focusPoint->x, $gameCamera->focusPoint->z);
 
         // update the cameras rotation in euler angles
         $gameCamera->rotation = $gameCamera->rotation + $gameCamera->rotationVelocity;
@@ -248,7 +256,7 @@ class CameraSystem extends VISUCameraSystem
         // ensure the camera is always above the terrain
         $camera->transform->position->y = max(
             $camera->transform->position->y,
-            $heightmap->heightmap->getHeightAt($camera->transform->position->x, $camera->transform->position->z) + 50.0 // min 1.0 above the terrain
+            $heightmap->heightmap->getHeightAt($camera->transform->position->x, $camera->transform->position->z) + 70.0 // min 1.0 above the terrain
         );
     }
 }
