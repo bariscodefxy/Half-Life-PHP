@@ -22,7 +22,7 @@ class GameCameraComponent
      */
     public float $focusPointSpeedFar = 0.5;
 
-    /**
+    /**focusPointVelocity
      * The velocity gained when moving the focus when the camera is close
      */
     public float $focusPointSpeedClose = 0.01;
