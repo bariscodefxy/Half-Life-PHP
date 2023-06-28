@@ -22,7 +22,7 @@
 
 // the game loop
 // we are tick the game 60 times a second
-@game_loop.main: VISU\Runtime\GameLoop(@game, 120)
+@game_loop.main: VISU\Runtime\GameLoop(@game, 60)
 
 /**
  * Shader storage
