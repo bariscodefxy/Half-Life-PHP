@@ -12,6 +12,7 @@ use PHPLife\System\BarBillboardSystem;
 use PHPLife\System\CameraSystem;
 use PHPLife\System\EditorCameraSystem;
 use PHPLife\System\HeightmapSystem;
+use PHPLife\System\Player;
 use VISU\ECS\EntityRegisty;
 use VISU\ECS\Picker\DevEntityPicker;
 use VISU\ECS\Picker\DevEntityPickerDelegate;
@@ -80,6 +81,11 @@ abstract class LevelScene extends BaseScene implements DevEntityPickerDelegate
      * Function ID for keyboard handler
      */
     private int $keyboardHandlerId = 0;
+
+    /**
+     * Player
+     */
+    private Player $player;
 
     /**
      * Constructor
@@ -293,6 +299,8 @@ abstract class LevelScene extends BaseScene implements DevEntityPickerDelegate
             $this->level->name = $this->levelName;
             $this->initalizeLevel();
         }
+
+        $this->player = new Player($this->cameraSystem, $this);
     }
 
     /**
