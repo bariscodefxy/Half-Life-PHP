@@ -2,6 +2,7 @@
 
 namespace PHPLife\System;
 
+use GameContainer;
 use GL\Math\GLM;
 use GL\Math\Quat;
 use PHPLife\Component\GameCameraComponent;
@@ -28,12 +29,13 @@ class EditorCameraSystem extends CameraSystem
      * Constructor
      */
     public function __construct(
-        Input $input,
+        Input                     $input,
         protected InputContextMap $inputContext,
-        Dispatcher $dispatcher,
+        Dispatcher                $dispatcher,
+        GameContainer             $container
     )
     {
-        parent::__construct($input, $dispatcher);
+        parent::__construct($input, $inputContext, $dispatcher, $container);
     }
 
     /**
