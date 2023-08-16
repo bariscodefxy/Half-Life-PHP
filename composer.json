@@ -18,5 +18,13 @@
   "require": {
     "phpgl/ide-stubs": "dev-main",
     "phpgl/visu": "@dev"
+  },
+  "scripts": {
+    "post-root-package-install": [
+      "mkdir var/ && mkdir var/cache/ && chmod -R 777 var/"
+    ],
+    "post-autoload-dump": [
+      "ClanCats\\Container\\ComposerContainerFileLoader::generateMap"
+    ]
   }
 }
