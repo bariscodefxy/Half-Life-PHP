@@ -1,4 +1,4 @@
-## PHP-Life
+## Half-Life: PHP
 
 Half-Life written in PHP.
 
