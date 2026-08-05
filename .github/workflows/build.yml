@@ -1,4 +1,4 @@
-name: Build Half-Life PHP Windows
+name: Build Half-Life PHP
 
 on:
   workflow_dispatch:
@@ -18,16 +18,22 @@ env:
   PHP_GLFW_SHA256: "3aba7d08cb3b7722a1a5950043e6c5214163ceaaf7b87ad99aa17d8c0dcee2ae"
 
 
+
 jobs:
 
-  build:
 
-    name: Build Windows x64
-    runs-on: windows-latest
+  #
+  # Linux PHAR build
+  #
+  build-phar:
+
+    name: Build PHAR
+    runs-on: ubuntu-latest
+
 
     steps:
 
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
 
@@ -38,25 +44,66 @@ jobs:
           tools: composer
 
 
-      - name: Install Composer dependencies
-        shell: pwsh
+      - name: Install dependencies
         run: |
-          composer install `
-            --no-dev `
-            --prefer-dist `
+          composer install \
+            --no-dev \
+            --prefer-dist \
             --optimize-autoloader
 
 
       - name: Install Box
-        shell: pwsh
         run: |
           composer require --dev humbug/box:dev-main -W
 
 
       - name: Build PHAR
-        shell: pwsh
         run: |
           vendor/bin/box compile
+
+
+      - name: Upload PHAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: half-life-phar
+          path: build/half-life-php.phar
+
+
+
+
+  #
+  # Windows executable build
+  #
+  build-windows:
+
+
+    name: Build Windows x64
+    needs: build-phar
+    runs-on: windows-latest
+
+
+    steps:
+
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
+
+      - name: Download PHAR
+        uses: actions/download-artifact@v4
+        with:
+          name: half-life-phar
+          path: build
+
+
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer
+
 
 
       - name: Install PHPacker
@@ -65,15 +112,18 @@ jobs:
           composer global require phpacker/phpacker
 
 
-      - name: Add Composer global binaries
+
+      - name: Add Composer global bin
         shell: pwsh
         run: |
           echo "$env:APPDATA\Composer\vendor\bin" >> $env:GITHUB_PATH
 
 
+
       - name: Build executable
         shell: pwsh
         run: |
+
           phpacker `
             build/half-life-php.phar `
             --php-version=8.2 `
@@ -81,30 +131,41 @@ jobs:
             --output=half-life-php.exe
 
 
+
       - name: Create runtime folders
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force release/runtime/ext
+
+          New-Item `
+            -ItemType Directory `
+            -Force `
+            release/runtime/ext
+
 
 
       - name: Download PHP runtime
         shell: pwsh
         run: |
+
           Invoke-WebRequest `
             $env:PHP_RUNTIME_URL `
             -OutFile php.zip
+
 
           Expand-Archive `
             php.zip `
             release/runtime
 
 
+
       - name: Download PHP GLFW
         shell: pwsh
         run: |
+
           Invoke-WebRequest `
             $env:PHP_GLFW_URL `
             -OutFile php-glfw.zip
+
 
 
       - name: Verify PHP GLFW checksum
@@ -119,6 +180,9 @@ jobs:
 
 
           if ($hash -ne "${{ env.PHP_GLFW_SHA256 }}") {
+
+            Write-Host "Checksum mismatch"
+
             Write-Host "Expected:"
             Write-Host "${{ env.PHP_GLFW_SHA256 }}"
 
@@ -127,6 +191,7 @@ jobs:
 
             exit 1
           }
+
 
 
       - name: Install PHP GLFW
@@ -143,6 +208,7 @@ jobs:
             release/runtime/ext/
 
 
+
       - name: Create php.ini
         shell: pwsh
         run: |
@@ -151,9 +217,11 @@ jobs:
             'extension_dir="ext"',
             'extension=php_glfw.dll',
             'memory_limit=512M'
-          ) | Out-File `
+          ) |
+          Out-File `
             release/runtime/php.ini `
             -Encoding ASCII
+
 
 
       - name: Test PHP GLFW
@@ -164,6 +232,7 @@ jobs:
             -c release/runtime/php.ini `
             -m |
             Select-String glfw
+
 
 
       - name: Assemble release
@@ -180,7 +249,8 @@ jobs:
             release/
 
 
-      - name: Create ZIP package
+
+      - name: Create ZIP
         shell: pwsh
         run: |
 
@@ -189,10 +259,9 @@ jobs:
             -DestinationPath half-life-php-windows-x64.zip
 
 
-      - name: Upload artifact
+
+      - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
-
           name: half-life-php-windows-x64
-
           path: half-life-php-windows-x64.zip
