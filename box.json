@@ -1,0 +1,7 @@
+{
+  "main": "bin/start.php",
+  "output": "build/half-life-php.phar",
+  "directories": [ "src" ],
+  "directories-bin": [ "resources", "app" ],
+  "force-autodiscovery": true
+}

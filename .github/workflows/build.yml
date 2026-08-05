@@ -1,0 +1,263 @@
+name: Build Half-Life PHP Windows
+
+on:
+  workflow_dispatch:
+
+  push:
+    tags:
+      - "v*"
+
+
+env:
+  PHP_VERSION: "8.1"
+  PHP_GLFW_SHA256: "a9c464210a0c8fec9424aafc6f3e8f7b16c023f059c0ae242865725495cf8d7d"
+
+
+jobs:
+
+  build-windows:
+
+    name: Build Windows x64 Release
+    runs-on: windows-latest
+
+
+    steps:
+
+    #
+    # Checkout
+    #
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+
+
+    #
+    # Build tools PHP
+    #
+    - name: Setup PHP build environment
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ env.PHP_VERSION }}
+        tools: composer
+
+
+
+    #
+    # Composer dependencies
+    #
+    - name: Install dependencies
+      shell: pwsh
+      run: |
+        composer install `
+          --no-dev `
+          --prefer-dist `
+          --optimize-autoloader
+
+
+
+    #
+    # Install Box
+    #
+    - name: Install Box
+      shell: pwsh
+      run: |
+        composer require --dev humbug/box:dev-main
+
+
+
+    #
+    # Build PHAR
+    #
+    - name: Build PHAR
+      shell: pwsh
+      run: |
+        vendor/bin/box compile
+
+
+
+    #
+    # Install PHPacker
+    #
+    - name: Install PHPacker
+      shell: pwsh
+      run: |
+        composer global require phpacker/phpacker
+
+
+
+    #
+    # Add composer global bin
+    #
+    - name: Add Composer global bin
+      shell: pwsh
+      run: |
+        echo "$env:APPDATA\Composer\vendor\bin" >> $env:GITHUB_PATH
+
+
+
+    #
+    # Build executable
+    #
+    - name: Build EXE
+      shell: pwsh
+      run: |
+        phpacker `
+          build/half-life-php.phar `
+          --php-version=8.1 `
+          --arch=x64 `
+          --output=half-life-php.exe
+
+
+
+    #
+    # Prepare runtime
+    #
+    - name: Prepare runtime directory
+      shell: pwsh
+      run: |
+
+        mkdir release
+        mkdir release/runtime
+        mkdir release/runtime/ext
+
+
+
+    #
+    # Download PHP 8.1 TS x64
+    #
+    - name: Download PHP 8.1 runtime
+      shell: pwsh
+      run: |
+
+        Invoke-WebRequest `
+          https://windows.php.net/downloads/releases/php-8.1.29-Win32-vs16-x64.zip `
+          -OutFile php.zip
+
+
+        Expand-Archive `
+          php.zip `
+          release/runtime
+
+
+
+    #
+    # Download PHP GLFW
+    #
+    - name: Download PHP GLFW
+      shell: pwsh
+      run: |
+
+        Invoke-WebRequest `
+          https://github.com/mario-deluna/php-glfw/releases/latest/download/win_glfw_php8.1_ts_x64.zip `
+          -OutFile php-glfw.zip
+
+
+
+    #
+    # Verify PHP GLFW checksum
+    #
+    - name: Verify PHP GLFW checksum
+      shell: pwsh
+      run: |
+
+        $hash = (
+          Get-FileHash `
+          php-glfw.zip `
+          -Algorithm SHA256
+        ).Hash.ToLower()
+
+
+        if ($hash -ne "${{ env.PHP_GLFW_SHA256 }}") {
+          throw "PHP GLFW checksum mismatch"
+        }
+
+
+
+    #
+    # Extract PHP GLFW
+    #
+    - name: Install PHP GLFW
+      shell: pwsh
+      run: |
+
+        Expand-Archive `
+          php-glfw.zip `
+          php-glfw
+
+
+        Copy-Item `
+          php-glfw/*.dll `
+          release/runtime/ext/
+
+
+
+    #
+    # Create php.ini
+    #
+    - name: Create php.ini
+      shell: pwsh
+      run: |
+
+        @"
+extension_dir="ext"
+
+extension=php_glfw.dll
+
+memory_limit=512M
+
+"@ | Out-File `
+          release/runtime/php.ini `
+          -Encoding ASCII
+
+
+
+    #
+    # Test GLFW loading
+    #
+    - name: Test PHP GLFW
+      shell: pwsh
+      run: |
+
+        release/runtime/php.exe -m | findstr glfw
+
+
+
+    #
+    # Copy application files
+    #
+    - name: Assemble release
+      shell: pwsh
+      run: |
+
+        Copy-Item `
+          half-life-php.exe `
+          release/
+
+
+        Copy-Item `
+          build/half-life-php.phar `
+          release/
+
+
+
+    #
+    # Create zip
+    #
+    - name: Create release archive
+      shell: pwsh
+      run: |
+
+        Compress-Archive `
+          -Path release/* `
+          -DestinationPath half-life-php-windows-x64.zip
+
+
+
+    #
+    # Upload artifact
+    #
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: half-life-php-windows-x64
+        path: half-life-php-windows-x64.zip

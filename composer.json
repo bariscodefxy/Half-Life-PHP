@@ -9,7 +9,8 @@
         "phpgl/visu": "@dev"
     },
     "require-dev": {
-        "phpgl/ide-stubs": "dev-main"
+        "phpgl/ide-stubs": "dev-main",
+        "humbug/box": "dev-main"
     },
     "scripts": {
         "post-root-package-install": [
