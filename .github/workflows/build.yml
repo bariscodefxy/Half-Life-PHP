@@ -22,9 +22,6 @@ env:
 jobs:
 
 
-  #
-  # Linux PHAR build
-  #
   build-phar:
 
     name: Build PHAR
@@ -62,6 +59,11 @@ jobs:
           vendor/bin/box compile
 
 
+      - name: Check PHAR
+        run: |
+          ls -la build/
+
+
       - name: Upload PHAR
         uses: actions/upload-artifact@v4
         with:
@@ -71,9 +73,7 @@ jobs:
 
 
 
-  #
-  # Windows executable build
-  #
+
   build-windows:
 
 
@@ -94,7 +94,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: half-life-phar
-          path: build
+          path: .
+
+
+
+      - name: Check downloaded files
+        shell: pwsh
+        run: |
+
+          Get-ChildItem -Recurse
 
 
 
@@ -109,6 +117,7 @@ jobs:
       - name: Install PHPacker
         shell: pwsh
         run: |
+
           composer global require phpacker/phpacker
 
 
@@ -116,7 +125,16 @@ jobs:
       - name: Add Composer global bin
         shell: pwsh
         run: |
+
           echo "$env:APPDATA\Composer\vendor\bin" >> $env:GITHUB_PATH
+
+
+
+      - name: PHPacker help
+        shell: pwsh
+        run: |
+
+          phpacker --help
 
 
 
@@ -180,8 +198,6 @@ jobs:
 
 
           if ($hash -ne "${{ env.PHP_GLFW_SHA256 }}") {
-
-            Write-Host "Checksum mismatch"
 
             Write-Host "Expected:"
             Write-Host "${{ env.PHP_GLFW_SHA256 }}"
@@ -263,5 +279,7 @@ jobs:
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
+
           name: half-life-php-windows-x64
+
           path: half-life-php-windows-x64.zip
