@@ -142,11 +142,10 @@ jobs:
         shell: pwsh
         run: |
 
-          phpacker `
-            build/half-life-php.phar `
-            --php-version=8.2 `
-            --arch=x64 `
-            --output=half-life-php.exe
+          phpacker build windows x64 `
+            --src=build/half-life-php.phar `
+            --dest=release `
+            --php=8.2
 
 
 
