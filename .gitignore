@@ -1,2 +1,4 @@
 /var/cache/*
 /vendor/
+/.idea/
+/.vs/
