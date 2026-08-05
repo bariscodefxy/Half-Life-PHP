@@ -142,9 +142,9 @@ jobs:
         shell: pwsh
         run: |
 
-          $src = "${{ github.workspace }}\build\half-life-php.phar"
+          $src = (Resolve-Path "build/half-life-php.phar").Path
 
-          $dest = "${{ github.workspace }}\release"
+          $dest = (Resolve-Path ".").Path + "\release"
 
 
           New-Item `
