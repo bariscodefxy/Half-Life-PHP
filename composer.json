@@ -6,6 +6,7 @@
         }
     },
     "require": {
+        "php": ">=8.1",
         "phpgl/visu": "@dev"
     },
     "require-dev": {
